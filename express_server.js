@@ -59,8 +59,12 @@ app.get("/set", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  let shortURL = generateRandomString();;
+  let longURL = req.body.longURL
+  urlDatabase[shortURL] = longURL
+  res.redirect('urls')
+  
+
 });
 
  app.get("/urls/:shortURL", (req, res) => {
