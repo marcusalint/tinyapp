@@ -19,6 +19,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 }
 
+// Generate Random String Function
 function generateRandomString(length) {
   var string = " ";
   length = 6;
@@ -29,10 +30,9 @@ function generateRandomString(length) {
         string += charset.charAt(Math.floor(Math.random() * charset.length));
 
   return string;
-
 };
 
-console.log(generateRandomString(6))
+
 
 app.get('/', (req, res) => {
   res.redirect("/urls");
