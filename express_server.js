@@ -13,6 +13,18 @@ app.set('view engine', 'ejs');
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+const users = { 
+  "RandomUser1": {
+    id: "MichelleObama", 
+    email: "Michelle@gmail.com", 
+    password: "Michelle"
+  },
+ "RandomUser2": {
+    id: "JoeShmoe", 
+    email: "Joe@gmail.com", 
+    password: "Johnny"
+  }
+}
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -22,7 +34,6 @@ const urlDatabase = {
 function generateRandomString(length) {
   var string = " ";
   length = 6;
-
   var charset = "abcdefghijklmnopqrstuvwxyz0123456789";
 
   for( var i=0; i < length; i++ )
@@ -78,6 +89,11 @@ app.get("/register", (req, res) => {
    };
   res.render("urls_register", templateVars);
 });
+
+// Post Registration Form
+app.post("/register", (req, res) => {
+  let newUser = 
+})
 
 // Redirect to long url of shortened url
 app.get("/u/:shortURL", (req, res) => { 
