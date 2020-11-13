@@ -121,6 +121,17 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 });
 
+// Post Register Form 
+app.post("/register", (req, res) => {
+  let newUserId = generateRandomString();
+  users.newUserId = {
+    id: newUserId,
+    email: req.body.email,
+    password: req.body.password
+  }
+  
+});
+
 
 
 
