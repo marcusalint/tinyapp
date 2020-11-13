@@ -14,6 +14,10 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 
+const users = {
+
+};
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -123,13 +127,17 @@ app.get("/register", (req, res) => {
 
 // Post Register Form 
 app.post("/register", (req, res) => {
-  let newUserId = generateRandomString();
-  users.newUserId = {
-    id: newUserId,
+  let newUser = generateRandomString();
+
+  users.newUser = {
+    id: newUser,
     email: req.body.email,
     password: req.body.password
   }
-  
+
+  res.cookie('username', newUser)
+  res.redirect("/urls")
+
 });
 
 
