@@ -32,39 +32,22 @@ function generateRandomString(length) {
 
 };
 
-console.log(generateRandomString(6))
+// Routing
 
 app.get('/', (req, res) => {
-  res.send('hello');
+  res.redirect('/urls');
 }); 
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get('/hello', (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n")
-})
-
-app.get("/set", (req, res) => {
-  const a = 1;
-  res.send(`a = ${a}`);
- });
-
- app.get("/fetch", (req, res) => {
-  res.send(`a = ${a}`);
- });
-
- app.get('/urls', (req, res) => {
-   const templateVars = { 
+app.get('/urls', (req, res) => {
+  const templateVars = { 
      urls: urlDatabase,
      username: req.cookies['username']
 
     };
-   res.render('urls_index', templateVars);
- });
+  res.render('urls_index', templateVars);
+});
 
- app.get("/urls/new", (req, res) => {
+app.get("/urls/new", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL,
     longURL:  urlDatabase[req.params.shortURL],
     username: req.cookies['username']
@@ -79,7 +62,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`)
 });
 
- app.get("/urls/:shortURL", (req, res) => {
+app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL,
      longURL:  urlDatabase[req.params.shortURL],
      username: req.cookies['username']
@@ -87,6 +70,16 @@ app.post("/urls", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+// Get Registration Form
+app.get("/register", (req, res) => {
+  const templateVars = { 
+    urls: urlDatabase,
+    username: req.cookies['username']
+   };
+  res.render("urls_register", templateVars);
+});
+
+// Redirect to long url of shortened url
 app.get("/u/:shortURL", (req, res) => { 
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
