@@ -19,6 +19,9 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 }
 
+
+
+
 // Generate Random String Function
 function generateRandomString(length) {
   var string = " ";
@@ -38,14 +41,15 @@ app.get('/', (req, res) => {
   res.redirect("/urls");
 });
 
- app.get('/urls', (req, res) => {
-   const templateVars = { 
-     urls: urlDatabase,
-     username: req.cookies['username']
 
-    };
-   res.render('urls_index', templateVars);
+ app.get('/urls', (req, res) => {
+  const templateVars = { 
+  urls: urlDatabase,
+  username: req.cookies['username']
+  };
+  res.render('urls_index', templateVars);
  });
+
 
  app.get("/urls/new", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL,
