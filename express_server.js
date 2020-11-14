@@ -116,17 +116,6 @@ app.post("/urls/:id", (req, res) => {
   res.redirect('/urls');
 });
 
-//Post Login
-app.post("/login", (req, res) => {
-  res.cookie('user_id', req.body.user_id)
-  res.redirect('/urls');
-})
-
-//Post Logout
-app.post("/logout", (req, res) => {
-  res.clearCookie('user_id');
-  res.redirect('/urls');
-});
 
 // Route To Register Endpoint
 app.get("/register", (req, res) => {
@@ -137,22 +126,43 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 });
 
+
 // Post Register Form 
 app.post("/register", (req, res) => {
-  let newUser = generateRandomString();
+  let emailExists = false;
+  let emailAddress = req.body.email;
 
-  users.newUser = {
-    id: newUser,
-    email: req.body.email,
-    password: req.body.password
+  if ((req.body.email === "") || (req.body.password === "")) {
+    res.status(400).send("E-mail or password not valid. Please enter a valid E-mail and password.");
+  } else if (checkEmailDatabase(emailAddress, emailExists) === true) {
+    res.status(400).send("there is an account already associated with this email")
+    
+  } else {
+    let newUser = generateRandomString();
+
+    users.newUser = {
+      id: newUser,
+      email: req.body.email,
+      password: req.body.password
+    };
   }
-
   res.cookie('user_id', users.newUser)
   res.redirect("/urls")
-
 });
 
 
+//Post Login
+app.post("/login", (req, res) => {
+  res.cookie('user_id', req.body.user_id)
+  res.redirect('/urls');
+})
+
+
+//Post Logout
+app.post("/logout", (req, res) => {
+  res.clearCookie('user_id');
+  res.redirect('/urls');
+});
 
 
 app.listen(PORT, () => {
