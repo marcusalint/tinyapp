@@ -24,8 +24,6 @@ const urlDatabase = {
 }
 
 
-
-
 // Generate Random String Function
 function generateRandomString(length) {
   var string = " ";
@@ -37,6 +35,7 @@ function generateRandomString(length) {
 
   return string;
 };
+
 
 // Check If Email Already Exists Function
  function checkEmailDatabase(email, exists) {
@@ -54,6 +53,23 @@ function generateRandomString(length) {
 app.get('/', (req, res) => {
   res.redirect("/urls");
 });
+
+
+
+//Post Login
+app.post("/login", (req, res) => {
+  res.cookie('user_id', req.body.user_id)
+  res.redirect('/urls');
+})
+
+
+//Post Logout
+app.post("/logout", (req, res) => {
+  res.clearCookie('user_id');
+  res.redirect('/urls');
+});
+
+
 
 // Route urls endpoint
  app.get('/urls', (req, res) => {
@@ -136,7 +152,6 @@ app.post("/register", (req, res) => {
     res.status(400).send("E-mail or password not valid. Please enter a valid E-mail and password.");
   } else if (checkEmailDatabase(emailAddress, emailExists) === true) {
     res.status(400).send("there is an account already associated with this email")
-    
   } else {
     let newUser = generateRandomString();
 
@@ -145,24 +160,11 @@ app.post("/register", (req, res) => {
       email: req.body.email,
       password: req.body.password
     };
-  }
+  };
   res.cookie('user_id', users.newUser)
   res.redirect("/urls")
 });
 
-
-//Post Login
-app.post("/login", (req, res) => {
-  res.cookie('user_id', req.body.user_id)
-  res.redirect('/urls');
-})
-
-
-//Post Logout
-app.post("/logout", (req, res) => {
-  res.clearCookie('user_id');
-  res.redirect('/urls');
-});
 
 
 app.listen(PORT, () => {
