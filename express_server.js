@@ -54,7 +54,7 @@ app.get('/', (req, res) => {
   res.redirect("/urls");
 });
 
-//Get Login
+//Get Login Page
 app.get("/login", (req, res) => {
   const templateVars = { 
     urls: urlDatabase,
@@ -66,8 +66,22 @@ app.get("/login", (req, res) => {
 
 //Post Login
 app.post("/login", (req, res) => {
-  res.cookie('user_id', req.body.user_id)
-  res.redirect('/urls');
+  const emailAddress = req.body.email;
+  if (checkEmailDatabase(emailAddress) === false) { 
+    return res.status(403).send("403 Error: Invalid Email");
+    
+  }
+  for (let user in users) {
+    if(emailAddress === users[user]["email"]) {
+      if(req.body.password === users[user]["password"]) {
+        res.cookie("user_id", users[user])
+        res.redirect(`/urls`);
+      } else {
+      return res.status(403).send("403 Error: Invalid Password");
+      
+      } 
+    }
+  }
 })
 
 
