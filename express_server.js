@@ -30,7 +30,7 @@ const urlDatabase = {
 function generateRandomString(length) {
   var string = " ";
   length = 6;
-
+  
   var charset = "abcdefghijklmnopqrstuvwxyz0123456789";
 
   for( var i=0; i < length; i++ )
