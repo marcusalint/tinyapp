@@ -54,6 +54,14 @@ app.get('/', (req, res) => {
   res.redirect("/urls");
 });
 
+//Get Login
+app.get("/login", (req, res) => {
+  const templateVars = { 
+    urls: urlDatabase,
+    user_id: req.cookies['user_id']
+   };
+  res.render("urls_login", templateVars);
+});
 
 
 //Post Login
@@ -162,7 +170,7 @@ app.post("/register", (req, res) => {
     };
   };
   res.cookie('user_id', users.newUser)
-  res.redirect("/urls")
+  res.redirect(`/urls`)
 });
 
 
