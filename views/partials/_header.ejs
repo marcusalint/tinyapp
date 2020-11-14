@@ -14,10 +14,10 @@
           <a class="nav-item nav-link" href="/register" style="background-color: white; margin: 10px">Register</a>                 
           <a class="nav-item nav-link" href="/login" style="background-color: white; margin: 10px">Login</a>     
     <% } else { %>
-      <form class="form-inline" action="/urls/logout" method="POST">
+      <form class="form-inline" action="/logout" method="POST">
         <div class="form-group mb-2">
           <label for="name"><b>Logged in as <%= user_id["email"] %></b></label>
-          <button type="logout" class="btn btn-primary">Logout</button>
+          <button type="logout" class="btn btn-primary" href="/logout">Logout</button>
         </div>
       </form>
     <% } %>
