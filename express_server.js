@@ -30,7 +30,6 @@ const urlDatabase = {
 function generateRandomString(length) {
   var string = " ";
   length = 6;
-  
   var charset = "abcdefghijklmnopqrstuvwxyz0123456789";
 
   for( var i=0; i < length; i++ )
@@ -39,6 +38,17 @@ function generateRandomString(length) {
   return string;
 };
 
+// Check If Email Already Exists Function
+ function checkEmailDatabase(email, exists) {
+  let emailExists = false;
+
+  for (let user in users) {
+    if (email === users[user]["email"]) {
+      emailExists = true;
+    }
+  }
+  return emailExists;
+ }
 
 
 app.get('/', (req, res) => {
