@@ -15,12 +15,16 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 
 const users = {
-
+  "randomUserId": {
+    id: "userRandomID", 
+    email: "useremail@gmail.com", 
+    password: "hello1234"
+  },
 };
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "randomUserID"},
+  "9sm5xK": { longURL: "http://www.google.com", userID: "randomUserID"},
 }
 
 
@@ -106,12 +110,10 @@ app.post("/logout", (req, res) => {
 
 // Route To Create New Url
  app.get("/urls/new", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL,
-    longURL:  urlDatabase[req.params.shortURL],
-    user_id: req.cookies['user_id']
-    };
-
-  res.render("urls_new", templateVars);
+  if (req.cookies.user_id !== undefined) {
+    let templateVars = { user_id: req.cookies["user_id"] };
+    res.render("urls_new", templateVars);
+  } return res.redirect("/login")
 });
 
 
@@ -121,6 +123,10 @@ app.post("/urls", (req, res) => {
   let longURL = req.body.longURL;
   urlDatabase[shortURL] = longURL;
   res.redirect(`/urls/${shortURL}`)
+
+
+
+  
 });
 
 
