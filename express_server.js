@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const PORT = 8080;
+const bcrypt = require('bcrypt');
 
 
 const cookieParser = require('cookie-parser')
@@ -23,10 +24,13 @@ const users = {
 };
 
 const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "randomUserID"},
-  "9sm5xK": { longURL: "http://www.google.com", userID: "randomUserID"},
+  "b2xVn2": "http://www.lighthouselabs.ca",
+  "9sm5xK":  "http://www.google.com"
 }
-
+// const urlDatabase = {
+//   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "randomUserID"},
+//   "9sm5xK": { longURL: "http://www.google.com", userID: "randomUserID"},
+// }
 
 // Generate Random String Function
 function generateRandomString(length) {
