@@ -2,126 +2,106 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const bcrypt = require('bcrypt');
-var cookieSession = require('cookie-session');
-
-
-app.set('view engine', 'ejs');
-
+const cookieSession = require("cookie-session");
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(cookieSession({
   name: 'session',
   keys: ["HUHF2FH32FH93FHDOSO"],
-
-  // Cookie Options
-  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  maxAge: 24 * 60 * 60 * 1000 
 }));
 
+app.set('view engine', 'ejs');
 
+
+app.use(bodyParser.urlencoded({extended: true}));
+
+// ------------------------ DATABASE -------------------------------->
+const urlDatabase = {
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID"},
+  "9sm5xK": { longURL: "http://www.google.com", userID: "userRandomID"},
+};
+
+let userData = {
+};
 
 const users = {
-  "randomUserId": {
-    id: "userRandomID", 
-    email: "useremail@gmail.com", 
-    password: "hello1234"
-  },
 };
 
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK":  "http://www.google.com"
-}
-// const urlDatabase = {
-//   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "randomUserID"},
-//   "9sm5xK": { longURL: "http://www.google.com", userID: "randomUserID"},
-// }
-
-
-
-
-// Generate Random String Function
-function generateRandomString(length) {
-  var string = " ";
-  length = 6;
-  var charset = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-  for( var i=0; i < length; i++ )
-        string += charset.charAt(Math.floor(Math.random() * charset.length));
-
-  return string;
-};
-
-
-// Check If Email Already Exists Function
- function checkEmailDatabase(email, emailExists) {
-  let emailExists = false;
-
-  for (let user in users) {
-    if (email === users[user]["email"]) {
-      emailExists = true;
-    }
-  }
-  return emailExists;
- }
-
-
-
+// ---------------------------------------------------------------- -->
 
 
 app.get('/', (req, res) => {
   res.redirect("/urls");
 });
 
+app.get("/DeniedAccess", (req, res) => {
+  let templateVars = { urls: userData, user_id: req.session["user_id"] };
+  res.render("DeniedAccess", templateVars);
+});
+
+
+// ------------------------------------------ LOG IN / LOG OUT ----------------------->
+
 //Get Login Page
-app.get("/login", (req, res) => {
-  const templateVars = { 
-    urls: urlDatabase,
-    user_id: req.session['user_id']
-   };
-  res.render("urls_login", templateVars);
+app.get("/login", (req,res) => {
+  if (req.session["user_id"] === undefined) {
+    let templateVars = { user_id: req.session["user_id"] };
+    res.render("urls_login", templateVars);
+  } else {
+    res.redirect(`/urls`);
+  }
 });
 
 
 //Post Login
 app.post("/login", (req, res) => {
+  const emailExists = false;
   const emailAddress = req.body.email;
-  const 
-  if (checkEmailDatabase(emailAddress) === false) { 
-    return res.status(403).send("403 Error: Invalid Email");
-    
+  if (checkEmailDatabase(emailAddress,emailExists) === false) {
+    return res.status(403).send("403 Error: Invalid Email");    
   }
   for (let user in users) {
-    if(emailAddress === users[user]["email"]) {
-      if(bcrypt.compareSync(req.body.password, users[key]["password"])) {
-        res.cookie("user_id", users[user])
+    if (emailAddress === users[user]["email"]) {
+      if (bcrypt.compareSync(req.body.password, users[user]["password"])) {
+        req.session.user_id = users[user];
+        for (let link in urlDatabase) {
+          if (urlDatabase[link]["userID"] === user) {
+            userData[link] = {};
+            userData[link]["longURL"] = urlDatabase[link]["longURL"];
+            userData[link]["userID"] = urlDatabase[link]["userID"];
+          }
+        }
         res.redirect(`/urls`);
       } else {
-      return res.status(403).send("403 Error: Invalid Password");
-      
-      } 
+        return res.status(403).send("403 Error: Invalid Password");
+      }
     }
   }
-})
+});
 
 
 //Post Logout
 app.post("/logout", (req, res) => {
-  res.session.user_id = null;
-  res.redirect('/urls');
+  req.session = null;
+  res.redirect(`/urls`);
 });
+
+
+// ------------------------------------------ URLS -------------------------->
 
 
 
 // Route urls endpoint
- app.get('/urls', (req, res) => {
-  const templateVars = { 
-  urls: urlDatabase,
-  user_id: req.session['user_id']
-  };
-
-  res.render('urls_index', templateVars);
- });
+app.get("/urls", (req, res) => {
+  if (req.session.user_id !== undefined) {
+    let templateVars = { urls: userData, user_id: req.session["user_id"] };
+    res.render("urls_index", templateVars);
+  } else {
+    res.redirect(`/DeniedAccess`);
+    return;
+  }
+});
 
 
 // Route To Create New Url
@@ -135,52 +115,109 @@ app.post("/logout", (req, res) => {
 
 // Create New Url And Save To Database
 app.post("/urls", (req, res) => {
-  let shortURL = generateRandomString();;
-  let longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
-  res.redirect(`/urls/${shortURL}`)
+  let fullLink = req.body.longURL;
+  for (let url in urlDatabase) {
+    const eqArrays = function() {
+      let match = true;
+      if (userData[url] === undefined || urlDatabase[url] === undefined) {
+        return false;
+      }
+      let one = userData[url]["userID"];
+      let two = urlDatabase[url]["userID"];
+    
+      for (let x = 0; x < one.length; x++) {
+        if (one[x] !== two[x]) match = false;
+      }
+      for (let x = 0; x < two.length; x++) {
+        if (one[x] !== two[x]) match = false;
+      }
+      return match;
+    };
 
-
-
-  
+    if (urlDatabase[url]["longURL"] === fullLink && eqArrays() === true) {
+      res.redirect(`/urls/${url}`);
+      return;
+    }
+  }
+  let shortURL = generateRandomString()
+  urlDatabase[shortURL] = {};
+  urlDatabase[shortURL]["longURL"] = fullLink;
+  urlDatabase[shortURL]["userID"] = req.session.user_id.id;
+  userData[shortURL] = {};
+  userData[shortURL]["longURL"] = fullLink;
+  userData[shortURL]["userID"] = req.session.user_id.id;
+  res.redirect(`/urls/${shortURL}`);
 });
 
 
 // Shows Long Url of Short Url
- app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL,
-     longURL:  urlDatabase[req.params.shortURL],
-     user_id: req.session['user_id']
-     };
-  res.render("urls_show", templateVars);
+app.get("/urls/:shortURL", (req, res) => {
+
+  if (userData[req.params.shortURL] instanceof Object) {
+    let templateVars = { shortURL: req.params.shortURL, longURL: userData[req.params.shortURL], user_id: req.session["user_id"] };
+    res.render("urls_show", templateVars);
+  } else {
+    res.redirect(`/DeniedAccess`);
+  }
 });
 
 
 // Redirect To Full Url
-app.get("/u/:shortURL", (req, res) => { 
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+app.get("/u/:shortURL", (req, res) => {
+  if (urlDatabase[req.params.shortURL] === undefined) {
+    res.redirect(`/DeniedAccess`);
+  } else {
+    const longURL = urlDatabase[req.params.shortURL].longURL;
+    res.redirect(longURL);
+  }
 });
 
-
- // Delete Link
+// ------------------------------------------ MODIFY URLS ----------------------->
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
-  res.redirect('/urls');
+  if (req.session.user_id.id === userData[req.params.shortURL].userID) {
+    delete urlDatabase[req.params.shortURL];
+    delete userData[req.params.shortURL];
+    res.redirect(`/urls`);
+  } else {
+    res.redirect(`/DeniedAccess`);
+  }
 });
 
-//Edit Link
-app.post("/urls/:id", (req, res) => {
-  urlDatabase[req.params.id] = req.body.newURL;
-  res.redirect('/urls');
+
+
+//when click edit, goes to shortURL site
+app.post("/urls/:shortURL/edit", (req, res) => {
+  if (req.session.user_id.id === userData[req.params.shortURL].userID) {
+    res.redirect(`/urls/${req.params.shortURL}`);
+  } else {
+    res.redirect(`/access`);
+  }
 });
 
+//keeps short URL when changing long URL
+app.post("/urls/:shortURL/submit", (req, res) => {
+  if (req.session.user_id.id === userData[req.params.shortURL].userID) {
+    urlDatabase[req.params.shortURL]["longURL"] = req.body.longURL;
+    userData[req.params.shortURL]["longURL"] = req.body.longURL;
+    res.redirect(`/urls`);
+  } else {
+    res.redirect(`/access`);
+  }
+});
+
+// //Edit Link
+// app.post("/urls/:id", (req, res) => {
+//   urlDatabase[req.params.id] = req.body.newURL;
+//   res.redirect('/urls');
+// });
+
+
+
+// ------------------------------------------ REGISTER ----------------------->
 
 // Route To Register Endpoint
 app.get("/register", (req, res) => {
   const templateVars = { 
-    urls: urlDatabase,
     user_id: req.session['user_id']
    };
   res.render("urls_register", templateVars);
@@ -202,12 +239,39 @@ app.post("/register", (req, res) => {
     users.newUser = {
       id: newUser,
       email: req.body.email,
-      password: bcrypt.hashSync(req.body.password,10) 
+      password: bcrypt.hashSync(req.body.password,10)
     };
+    req.session.user_id = users[newUser];
   };
-  res.cookie('user_id', users.newUser)
   res.redirect(`/urls`)
 });
+
+
+
+// Generate Random String Function
+function generateRandomString(length) {
+  var string = " ";
+  length = 6;
+  var charset = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+  for( var i=0; i < length; i++ )
+        string += charset.charAt(Math.floor(Math.random() * charset.length));
+
+  return string;
+};
+
+
+// Check If Email Already Exists Function
+ function checkEmailDatabase(email, exists) {
+  let emailExists = false;
+
+  for (let user in users) {
+    if (email === users[user]["email"]) {
+      emailExists = true;
+    }
+  }
+  return emailExists;;
+ }
 
 
 
