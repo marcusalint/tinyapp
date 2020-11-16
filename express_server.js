@@ -4,10 +4,11 @@ const PORT = 8080;
 const bcrypt = require('bcrypt');
 const cookieSession = require("cookie-session");
 const bodyParser = require("body-parser");
+let getUserByEmail = require('helpers.js');
 
 app.use(cookieSession({
   name: 'session',
-  keys: ["HUHF2FH32FH93FHDOSO"],
+  keys: ["238012HCASD09123"],
   maxAge: 24 * 60 * 60 * 1000 
 }));
 
@@ -17,10 +18,7 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 
 // ------------------------ DATABASE -------------------------------->
-const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID"},
-  "9sm5xK": { longURL: "http://www.google.com", userID: "userRandomID"},
-};
+const urlDatabase = {};
 
 let userData = {
 };
@@ -43,7 +41,7 @@ app.get("/DeniedAccess", (req, res) => {
 
 // ------------------------------------------ LOG IN / LOG OUT ----------------------->
 
-//Get Login Page
+// GET LOGIN PAGE
 app.get("/login", (req,res) => {
   if (req.session["user_id"] === undefined) {
     let templateVars = { user_id: req.session["user_id"] };
@@ -54,7 +52,7 @@ app.get("/login", (req,res) => {
 });
 
 
-//Post Login
+//POST LOGIN
 app.post("/login", (req, res) => {
   const emailExists = false;
   const emailAddress = req.body.email;
@@ -81,18 +79,18 @@ app.post("/login", (req, res) => {
 });
 
 
-//Post Logout
+//POST LOGOUT
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect(`/urls`);
 });
 
 
-// ------------------------------------------ URLS -------------------------->
+// ------------------------------------------ ROUTING -------------------------->
 
 
 
-// Route urls endpoint
+// GETS URLS PAGE
 app.get("/urls", (req, res) => {
   if (req.session.user_id !== undefined) {
     let templateVars = { urls: userData, user_id: req.session["user_id"] };
@@ -110,6 +108,27 @@ app.get("/urls", (req, res) => {
     let templateVars = { user_id: req.session["user_id"] };
     res.render("urls_new", templateVars);
   } return res.redirect("/login")
+});
+
+app.get("/urls/:shortURL", (req, res) => {
+
+  if (userData[req.params.shortURL] instanceof Object) {
+    let templateVars = { shortURL: req.params.shortURL, longURL: userData[req.params.shortURL], user_id: req.session["user_id"] };
+    res.render("urls_show", templateVars);
+  } else {
+    res.redirect(`/DeniedAccess`);
+  }
+});
+
+
+// REDIRECTS TO LONG URL
+app.get("/u/:shortURL", (req, res) => {
+  if (urlDatabase[req.params.shortURL] === undefined) {
+    res.redirect(`/DeniedAccess`);
+  } else {
+    const longURL = urlDatabase[req.params.shortURL].longURL;
+    res.redirect(longURL);
+  }
 });
 
 
@@ -150,27 +169,6 @@ app.post("/urls", (req, res) => {
 });
 
 
-// Shows Long Url of Short Url
-app.get("/urls/:shortURL", (req, res) => {
-
-  if (userData[req.params.shortURL] instanceof Object) {
-    let templateVars = { shortURL: req.params.shortURL, longURL: userData[req.params.shortURL], user_id: req.session["user_id"] };
-    res.render("urls_show", templateVars);
-  } else {
-    res.redirect(`/DeniedAccess`);
-  }
-});
-
-
-// Redirect To Full Url
-app.get("/u/:shortURL", (req, res) => {
-  if (urlDatabase[req.params.shortURL] === undefined) {
-    res.redirect(`/DeniedAccess`);
-  } else {
-    const longURL = urlDatabase[req.params.shortURL].longURL;
-    res.redirect(longURL);
-  }
-});
 
 // ------------------------------------------ MODIFY URLS ----------------------->
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -190,26 +188,37 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   if (req.session.user_id.id === userData[req.params.shortURL].userID) {
     res.redirect(`/urls/${req.params.shortURL}`);
   } else {
-    res.redirect(`/access`);
+    res.redirect(`/DeniedAccess`);
   }
 });
 
 //keeps short URL when changing long URL
 app.post("/urls/:shortURL/submit", (req, res) => {
   if (req.session.user_id.id === userData[req.params.shortURL].userID) {
-    urlDatabase[req.params.shortURL]["longURL"] = req.body.longURL;
-    userData[req.params.shortURL]["longURL"] = req.body.longURL;
+    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+    userData[req.params.shortURL].longURL = req.body.longURL;
     res.redirect(`/urls`);
   } else {
-    res.redirect(`/access`);
+    res.redirect(`/DeniedAccess`);
   }
 });
 
-// //Edit Link
-// app.post("/urls/:id", (req, res) => {
-//   urlDatabase[req.params.id] = req.body.newURL;
-//   res.redirect('/urls');
-// });
+//Edit Link
+app.post("/urls/:id", (req, res) => {
+  const userID = req.session.user_id;
+  const userUrls = urlsForUser(userID, urlDatabase);
+  console.log(req.body,"hello")
+  console.log(req.params.id)
+  if (Object.keys(userUrls).includes(req.params.id)) {
+    res.status(401).send("You do not have authorization to edit this short URL.");
+  } else {
+    console.log(urlDatabase[req.params.id])
+    urlDatabase[req.params.id].longURL = req.body.newURL;
+    // urlDatabase[shortURL].longURL = req.body.newURL;
+    
+    res.redirect('/urls');
+  }
+});
 
 
 
@@ -248,6 +257,10 @@ app.post("/register", (req, res) => {
 
 
 
+
+
+// ------------------------------------------ FUNCTIONS ----------------------->
+
 // Generate Random String Function
 function generateRandomString(length) {
   var string = " ";
@@ -271,10 +284,25 @@ function generateRandomString(length) {
     }
   }
   return emailExists;;
- }
+ };
+
+ // GET URLS FOR USER
+ const urlsForUser = function(id, urlDatabase) {
+  const userUrls = {};
+  for (let shortURL in urlDatabase) {
+    // console.log(shortURL, "1234"); 
+    console.log(shortURL, "1234")
+    if (urlDatabase[shortURL].userID === id) {
+      console.log(urlDatabase[shortURL])
+      userUrls[shortURL] = urlDatabase[shortURL];
+    }
+  }
+  return userUrls;
+};
 
 
 
+// -------------------------------------------------------------------------------->
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`)
 });
