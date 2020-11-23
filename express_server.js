@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
 });
 
 app.get("/DeniedAccess", (req, res) => {
-  let templateVars = { urls: urlDatabase, user_id: req.session["user_id"] };
+  const templateVars = { urls: urlDatabase, user_id: req.session["user_id"] };
   res.render("DeniedAccess", templateVars);
 });
 
@@ -41,7 +41,7 @@ app.get("/DeniedAccess", (req, res) => {
 // GET LOGIN PAGE
 app.get("/login", (req,res) => {
   if (req.session["user_id"] === undefined) {
-    let templateVars = { user_id: req.session["user_id"] };
+    const templateVars = { user_id: req.session["user_id"] };
     res.render("urls_login", templateVars);
   } else {
     res.redirect(`/urls`);
@@ -82,7 +82,7 @@ app.post("/logout", (req, res) => {
 // GETS URLS PAGE
 app.get("/urls", (req, res) => {
   if (req.session.user_id !== undefined) {
-    let templateVars = { urls: urlDatabase, user_id: req.session["user_id"] };
+    const templateVars = { urls: urlDatabase, user_id: req.session["user_id"] };
     res.render("urls_index", templateVars);
   } else {
     res.redirect(`/DeniedAccess`);
@@ -94,7 +94,7 @@ app.get("/urls", (req, res) => {
 // Route To Create New Url
  app.get("/urls/new", (req, res) => {
   if (req.session.user_id !== undefined) {
-    let templateVars = { user_id: req.session["user_id"] };
+    const templateVars = { user_id: req.session["user_id"] };
     res.render("urls_new", templateVars);
   } return res.redirect("/login")
 });
@@ -102,7 +102,7 @@ app.get("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
 
   if (urlDatabase[req.params.shortURL] instanceof Object) {
-    let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user_id: req.session["user_id"] };
+    const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user_id: req.session["user_id"] };
     res.render("urls_show", templateVars);
   } else {
     res.redirect(`/DeniedAccess`);
@@ -147,7 +147,7 @@ app.post("/urls", (req, res) => {
       return;
     }
   }
-  let shortURL = generateRandomString()
+  const shortURL = generateRandomString()
   urlDatabase[shortURL] = {};
   urlDatabase[shortURL]["longURL"] = fullLink;
   urlDatabase[shortURL]["userID"] = req.session.user_id.id;
@@ -227,7 +227,7 @@ app.post("/register", (req, res) => {
 function generateRandomString(length) {
   let string = "";
   length = 6;
-  let charset = "abcdefghijklmnopqrstuvwxyz0123456789";
+  const charset = "abcdefghijklmnopqrstuvwxyz0123456789";
 
   for( let i=0; i < length; i++ )
         string += charset.charAt(Math.floor(Math.random() * charset.length));
