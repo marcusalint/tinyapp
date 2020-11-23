@@ -4,7 +4,7 @@ const PORT = 3000;
 const bcrypt = require('bcrypt');
 const cookieSession = require("cookie-session");
 const bodyParser = require("body-parser");
-const { checkEmailDatabase, generateRandomString, getUsersByEmail, urlsForUser } = require('./helpers.js');
+const { checkEmailDatabase, generateRandomString, getUserByEmail, urlsForUser } = require('./helpers.js');
 
 
 app.use(cookieSession({
