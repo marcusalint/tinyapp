@@ -168,24 +168,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 
 
-//when click edit, goes to shortURL site
-app.post("/urls/:shortURL/edit", (req, res) => {
-  if (req.session.user_id.id === urlDatabase[req.params.shortURL].userID) {
-    res.redirect(`/urls/${req.params.shortURL}`);
-  } else {
-    res.redirect(`/DeniedAccess`);
-  }
-});
-
-//keeps short URL when changing long URL
-app.post("/urls/:shortURL/submit", (req, res) => {
-  if (req.session.user_id.id === urlDatabase[req.params.shortURL].userID) {
-    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-    res.redirect(`/urls`);
-  } else {
-    res.redirect(`/DeniedAccess`);
-  }
-});
 
 //Edit Link
 app.post("/urls/:id", (req, res) => {
@@ -194,7 +176,6 @@ app.post("/urls/:id", (req, res) => {
   if (Object.keys(userUrls).includes(req.params.id)) {
     res.status(401).send("You do not have authorization to edit this short URL.");
   } else {
-    console.log(urlDatabase[req.params.id])
     urlDatabase[req.params.id].longURL = req.body.newURL;
     
     res.redirect('/urls');
@@ -244,7 +225,7 @@ app.post("/register", (req, res) => {
 
 // Generate Random String Function
 function generateRandomString(length) {
-  let string = " ";
+  let string = "";
   length = 6;
   let charset = "abcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -271,10 +252,7 @@ function generateRandomString(length) {
  const urlsForUser = function(id, urlDatabase) {
   const userUrls = {};
   for (let shortURL in urlDatabase) {
-    // console.log(shortURL, "1234"); 
-    console.log(shortURL, "1234")
     if (urlDatabase[shortURL].userID === id) {
-      console.log(urlDatabase[shortURL])
       userUrls[shortURL] = urlDatabase[shortURL];
     }
   }
