@@ -1,10 +1,10 @@
 const express = require("express");
 const app = express();
-const PORT = 8080;
+const PORT = 3000;
 const bcrypt = require('bcrypt');
 const cookieSession = require("cookie-session");
 const bodyParser = require("body-parser");
-let getUserByEmail = require('helpers.js');
+
 
 app.use(cookieSession({
   name: 'session',
@@ -20,9 +20,6 @@ app.use(bodyParser.urlencoded({extended: true}));
 // ------------------------ DATABASE -------------------------------->
 const urlDatabase = {};
 
-let userData = {
-};
-
 const users = {
 };
 
@@ -34,7 +31,7 @@ app.get('/', (req, res) => {
 });
 
 app.get("/DeniedAccess", (req, res) => {
-  let templateVars = { urls: userData, user_id: req.session["user_id"] };
+  let templateVars = { urls: urlDatabase, user_id: req.session["user_id"] };
   res.render("DeniedAccess", templateVars);
 });
 
@@ -63,14 +60,6 @@ app.post("/login", (req, res) => {
     if (emailAddress === users[user]["email"]) {
       if (bcrypt.compareSync(req.body.password, users[user]["password"])) {
         req.session.user_id = users[user];
-        for (let link in urlDatabase) {
-          if (urlDatabase[link]["userID"] === user) {
-            userData[link] = {};
-            userData[link]["longURL"] = urlDatabase[link]["longURL"];
-            userData[link]["userID"] = urlDatabase[link]["userID"];
-          }
-        }
-        res.redirect(`/urls`);
       } else {
         return res.status(403).send("403 Error: Invalid Password");
       }
@@ -93,7 +82,7 @@ app.post("/logout", (req, res) => {
 // GETS URLS PAGE
 app.get("/urls", (req, res) => {
   if (req.session.user_id !== undefined) {
-    let templateVars = { urls: userData, user_id: req.session["user_id"] };
+    let templateVars = { urls: urlDatabase, user_id: req.session["user_id"] };
     res.render("urls_index", templateVars);
   } else {
     res.redirect(`/DeniedAccess`);
@@ -112,8 +101,8 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
 
-  if (userData[req.params.shortURL] instanceof Object) {
-    let templateVars = { shortURL: req.params.shortURL, longURL: userData[req.params.shortURL], user_id: req.session["user_id"] };
+  if (urlDatabase[req.params.shortURL] instanceof Object) {
+    let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user_id: req.session["user_id"] };
     res.render("urls_show", templateVars);
   } else {
     res.redirect(`/DeniedAccess`);
@@ -138,10 +127,10 @@ app.post("/urls", (req, res) => {
   for (let url in urlDatabase) {
     const eqArrays = function() {
       let match = true;
-      if (userData[url] === undefined || urlDatabase[url] === undefined) {
+      if (urlDatabase[url] === undefined || urlDatabase[url] === undefined) {
         return false;
       }
-      let one = userData[url]["userID"];
+      let one = urlDatabase[url]["userID"];
       let two = urlDatabase[url]["userID"];
     
       for (let x = 0; x < one.length; x++) {
@@ -162,9 +151,6 @@ app.post("/urls", (req, res) => {
   urlDatabase[shortURL] = {};
   urlDatabase[shortURL]["longURL"] = fullLink;
   urlDatabase[shortURL]["userID"] = req.session.user_id.id;
-  userData[shortURL] = {};
-  userData[shortURL]["longURL"] = fullLink;
-  userData[shortURL]["userID"] = req.session.user_id.id;
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -172,9 +158,8 @@ app.post("/urls", (req, res) => {
 
 // ------------------------------------------ MODIFY URLS ----------------------->
 app.post("/urls/:shortURL/delete", (req, res) => {
-  if (req.session.user_id.id === userData[req.params.shortURL].userID) {
+  if (req.session.user_id.id === urlDatabase[req.params.shortURL].userID) {
     delete urlDatabase[req.params.shortURL];
-    delete userData[req.params.shortURL];
     res.redirect(`/urls`);
   } else {
     res.redirect(`/DeniedAccess`);
@@ -185,7 +170,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 //when click edit, goes to shortURL site
 app.post("/urls/:shortURL/edit", (req, res) => {
-  if (req.session.user_id.id === userData[req.params.shortURL].userID) {
+  if (req.session.user_id.id === urlDatabase[req.params.shortURL].userID) {
     res.redirect(`/urls/${req.params.shortURL}`);
   } else {
     res.redirect(`/DeniedAccess`);
@@ -194,9 +179,8 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 
 //keeps short URL when changing long URL
 app.post("/urls/:shortURL/submit", (req, res) => {
-  if (req.session.user_id.id === userData[req.params.shortURL].userID) {
+  if (req.session.user_id.id === urlDatabase[req.params.shortURL].userID) {
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-    userData[req.params.shortURL].longURL = req.body.longURL;
     res.redirect(`/urls`);
   } else {
     res.redirect(`/DeniedAccess`);
@@ -207,14 +191,11 @@ app.post("/urls/:shortURL/submit", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const userID = req.session.user_id;
   const userUrls = urlsForUser(userID, urlDatabase);
-  console.log(req.body,"hello")
-  console.log(req.params.id)
   if (Object.keys(userUrls).includes(req.params.id)) {
     res.status(401).send("You do not have authorization to edit this short URL.");
   } else {
     console.log(urlDatabase[req.params.id])
     urlDatabase[req.params.id].longURL = req.body.newURL;
-    // urlDatabase[shortURL].longURL = req.body.newURL;
     
     res.redirect('/urls');
   }
@@ -263,15 +244,15 @@ app.post("/register", (req, res) => {
 
 // Generate Random String Function
 function generateRandomString(length) {
-  var string = " ";
+  let string = " ";
   length = 6;
-  var charset = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let charset = "abcdefghijklmnopqrstuvwxyz0123456789";
 
-  for( var i=0; i < length; i++ )
+  for( let i=0; i < length; i++ )
         string += charset.charAt(Math.floor(Math.random() * charset.length));
 
   return string;
-};
+}
 
 
 // Check If Email Already Exists Function
@@ -283,8 +264,8 @@ function generateRandomString(length) {
       emailExists = true;
     }
   }
-  return emailExists;;
- };
+  return emailExists;
+}
 
  // GET URLS FOR USER
  const urlsForUser = function(id, urlDatabase) {
@@ -298,7 +279,7 @@ function generateRandomString(length) {
     }
   }
   return userUrls;
-};
+}
 
 
 
