@@ -21,7 +21,7 @@ function generateRandomString(length) {
 
 
 // Check If Email Already Exists Function
- function checkEmailDatabase(email, exists) {
+ function checkEmailDatabase(email, users) {
   let emailExists = false;
 
   for (let user in users) {
