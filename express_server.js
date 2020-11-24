@@ -6,7 +6,6 @@ const cookieSession = require("cookie-session");
 const bodyParser = require("body-parser");
 const { checkEmailDatabase, generateRandomString, getUserByEmail, urlsForUser } = require('./helpers.js');
 
-
 app.use(cookieSession({
   name: 'session',
   keys: ["238012HCASD09123"],
@@ -14,18 +13,14 @@ app.use(cookieSession({
 }));
 
 app.set('view engine', 'ejs');
-
-
 app.use(bodyParser.urlencoded({extended: true}));
 
 // ------------------------ DATABASE -------------------------------->
 const urlDatabase = {};
 
-const users = {
-};
+const users = {};
 
 // ---------------------------------------------------------------- -->
-
 
 app.get('/', (req, res) => {
   res.redirect("/urls");
@@ -35,7 +30,6 @@ app.get("/deniedAccess", (req, res) => {
   const templateVars = { urls: urlDatabase, user_id: req.session["user_id"] };
   res.render("DeniedAccess", templateVars);
 });
-
 
 // ------------------------------------------ LOG IN / LOG OUT ----------------------->
 
@@ -49,10 +43,8 @@ app.get("/login", (req,res) => {
   }
 });
 
-
 //POST LOGIN
 app.post("/login", (req, res) => {
-
   const email = req.body.email;
   if (checkEmailDatabase(email, users) === false) {
     return res.status(403).send("403 Error: Invalid Email");    
@@ -131,8 +123,6 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
-
-
 // ------------------------------------------ MODIFY URLS ----------------------->
 app.post("/urls/:shortURL/delete", (req, res) => {
   if (req.session.user_id.id === urlDatabase[req.params.shortURL].userID) {
@@ -142,9 +132,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     res.redirect(`/DeniedAccess`);
   }
 });
-
-
-
 
 //Edit Link
 app.post("/urls/:id", (req, res) => {
@@ -159,8 +146,6 @@ app.post("/urls/:id", (req, res) => {
   }
 });
 
-
-
 // ------------------------------------------ REGISTER ----------------------->
 
 // Route To Register Endpoint
@@ -170,7 +155,6 @@ app.get("/register", (req, res) => {
    };
   res.render("urls_register", templateVars);
 });
-
 
 // Post Register Form 
 // On successful registration users are redirected to urls page containing their shortend URLS
@@ -193,13 +177,6 @@ app.post("/register", (req, res) => {
   };
   res.redirect(`/urls`)
 });
-
-
-
-
-
-
-
 
 // -------------------------------------------------------------------------------->
 app.listen(PORT, () => {
