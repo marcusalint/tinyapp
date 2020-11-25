@@ -36,12 +36,16 @@ function generateRandomString(length) {
  const urlsForUser = function(id, urlDatabase) {
   const userUrls = {};
   for (let shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === id) {
+    if (urlDatabase[shortURL].userID === id[Object.keys(id)[0]]) {
       userUrls[shortURL] = urlDatabase[shortURL];
     }
   }
   return userUrls;
 }
+
+urlsForUser();
+
+
 
 module.exports = {
   getUserByEmail,
