@@ -6,6 +6,7 @@ const cookieSession = require("cookie-session");
 const bodyParser = require("body-parser");
 const { checkEmailDatabase, generateRandomString, getUserByEmail, urlsForUser } = require('./helpers.js');
 
+
 app.use(cookieSession({
   name: 'session',
   keys: ["238012HCASD09123"],
@@ -21,6 +22,7 @@ const urlDatabase = {};
 const users = {};
 
 // ---------------------------------------------------------------- -->
+
 
 app.get('/', (req, res) => {
   res.redirect("/urls");
@@ -43,6 +45,7 @@ app.get("/login", (req,res) => {
   }
 });
 
+
 //POST LOGIN
 app.post("/login", (req, res) => {
   const email = req.body.email;
@@ -53,6 +56,7 @@ app.post("/login", (req, res) => {
     if (email === users[user]["email"]) {
       if (bcrypt.compareSync(req.body.password, users[user]["password"])) {
         req.session.user_id = users[user];
+        res.redirect(`/urls`);
       } else {
         return res.status(403).send("403 Error: Invalid Password");
       }
@@ -177,7 +181,6 @@ app.post("/register", (req, res) => {
   };
   res.redirect(`/urls`)
 });
-
 // -------------------------------------------------------------------------------->
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`)
