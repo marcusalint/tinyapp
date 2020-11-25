@@ -79,7 +79,9 @@ app.post("/logout", (req, res) => {
 // GETS URLS PAGE
 app.get("/urls", (req, res) => {
   if (req.session.user_id !== undefined) {
-    const templateVars = { urls: urlDatabase, user_id: req.session["user_id"] };
+  const userID = req.session.user_id;
+  const userUrls = urlsForUser(userID, urlDatabase);
+    const templateVars = { urls: userUrls, user_id: req.session["user_id"] };
     res.render("urls_index", templateVars);
   } else {
     res.redirect(`/DeniedAccess`);
@@ -91,6 +93,7 @@ app.get("/urls", (req, res) => {
 // Route To Create New Url
  app.get("/urls/new", (req, res) => {
   if (req.session.user_id !== undefined) {
+    const userID = req.session.user_id;
     const templateVars = { user_id: req.session["user_id"] };
     res.render("urls_new", templateVars);
   } return res.redirect("/login")
@@ -141,12 +144,14 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const userID = req.session.user_id;
   const userUrls = urlsForUser(userID, urlDatabase);
+  console.log(req.params.id)
+  console.log(userUrls)
+  console.log(Object.keys(userUrls))
   if (Object.keys(userUrls).includes(req.params.id)) {
-    res.status(401).send("You do not have authorization to edit this short URL.");
-  } else {
     urlDatabase[req.params.id].longURL = req.body.newURL;
-    
     res.redirect('/urls');
+  } else {
+   return res.status(401).send("You do not have authorization to edit this short URL.");
   }
 });
 
