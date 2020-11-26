@@ -36,7 +36,10 @@ function generateRandomString(length) {
  const urlsForUser = function(id, urlDatabase) {
   const userUrls = {};
   for (let shortURL in urlDatabase) {
+    console.log(id)
+    // console.log(id.id)
     if (urlDatabase[shortURL].userID === id.id) {
+      console.log(userUrls)
       userUrls[shortURL] = urlDatabase[shortURL];
     }
   }
